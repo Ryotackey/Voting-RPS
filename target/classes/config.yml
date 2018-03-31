@@ -1,3 +1,10 @@
 time: 180
 minbal: 10000000
 minvote: 6
+rewardmoney:
+mysql:
+  host:
+  user:
+  pass:
+  port:
+  db:

@@ -29,12 +29,42 @@ public class Command implements CommandExecutor {
             case 0:
 
                 p.sendMessage("§f§l--------§a§lVoting §e§lRPS§f§l--------");
-                p.sendMessage("§6§l/vrps new [金額]§f§r:ゲームを開く");
-                p.sendMessage("§6§l/vrps join§f§r:ゲームに参加する");
-                p.sendMessage("§6§l/vrps vote§f§r:グーチョキパーのどれかに投票する");
+                p.sendMessage("§6§l/mv new [金額]§f§r:ゲームを開く");
+                p.sendMessage("§6§l/mv join§f§r:ゲームに参加する");
+                p.sendMessage("§6§l/mv vote§f§r:グーチョキパーのどれかに投票する");
+                p.sendMessage("§6§l/mv game§f§r:インベントリ間違えて閉じた場合開く");
                 p.sendMessage("§l--------------------------------------------");
 
-                break;
+                if (!plugin.voting){
+                    p.sendMessage(plugin.prefex + "§4§lまだ投票の受付を開始していません");
+                    return true;
+                }
+
+                if (plugin.battleplayer.contains(p)){
+                    p.sendMessage(plugin.prefex + "§4§lあなたは参加者なので投票できません");
+                    return true;
+                }
+
+                if (plugin.voteplayer.contains(p)){
+                    p.sendMessage(plugin.prefex + "§4§lあなたはすでに投票しています");
+                    return true;
+                }
+
+                plugin.voteinv = Bukkit.createInventory(null, 45, "§a§lVoting Menu");
+
+                for (int i = 0; i < 45; i++){
+
+                    plugin.voteinv.setItem(i, new ItemStack(Material.STAINED_GLASS_PANE, 1, (short)15));
+
+                }
+
+                plugin.voteinv.setItem(20, plugin.rock);
+                plugin.voteinv.setItem(22, plugin.scissor);
+                plugin.voteinv.setItem(24, plugin.paper);
+
+                p.openInventory(plugin.voteinv);
+
+                return true;
 
             case 1:
 
@@ -99,8 +129,13 @@ public class Command implements CommandExecutor {
                         return true;
                     }
 
+                    if (plugin.setup == false){
+                        p.sendMessage(plugin.prefex + "§4§lまだ始まっていません");
+                        return true;
+                    }
+
                     for (int i = 0; i < plugin.voteitem.size(); i++) {
-                        p.sendMessage(plugin.prefex + plugin.voteitem.get(i).getItemMeta().getDisplayName());
+                        p.sendMessage(plugin.prefex + "§c§l" + plugin.voteplayer.get(i).getDisplayName() + "§l:" + plugin.voteitem.get(i).getItemMeta().getDisplayName());
                     }
 
                     return true;
@@ -141,10 +176,79 @@ public class Command implements CommandExecutor {
 
                 }
 
+                if (args[0].equalsIgnoreCase("game")){
+
+                    if (plugin.setup == false && plugin.voting == true ) {
+                        return true;
+                    }
+
+                    if (plugin.battleitem1 == null || plugin.battleitem2 == null){
+                        return true;
+                    }
+
+                    if (p == plugin.battleplayer.get(0)){
+
+                        p.openInventory(plugin.battleinv1);
+
+                        return true;
+
+                    }
+
+                    if (p == plugin.battleplayer.get(1)){
+
+                        p.openInventory(plugin.battleinv2);
+
+                        return true;
+
+                    }
+
+                }
+
+                if (args[0].equalsIgnoreCase("on")){
+                    if (!p.hasPermission("votingrps.op")){
+                        p.sendMessage(plugin.prefex + "§4§l権限がありません");
+                        return true;
+                    }
+                    plugin.enable = true;
+                    p.sendMessage(plugin.prefex + "§a§l起動しました");
+                    return true;
+                }
+
+                if (args[0].equalsIgnoreCase("off")){
+                    if (!p.hasPermission("votingrps.op")){
+                        p.sendMessage(plugin.prefex + "§4§l権限がありません");
+                        return true;
+                    }
+                    plugin.enable = false;
+                    if (plugin.setup == true) {
+                        plugin.cancelGame();
+                    }
+                    p.sendMessage(plugin.prefex + "§a§lオフしました");
+                    return true;
+                }
+
+                if (args[0].equalsIgnoreCase("reload")){
+                    if (!p.hasPermission("votingrps.op")){
+                        p.sendMessage(plugin.prefex + "§4§l権限がありません");
+                        return true;
+                    }
+                    plugin.config.reloadConfig();
+                    p.sendMessage(plugin.prefex + "§aReload Complite");
+                    return true;
+                }
+
                 break;
 
             case 2:
                 if (args[0].equalsIgnoreCase("new")){
+
+                    if (plugin.enable == false){
+
+                        p.sendMessage(plugin.prefex + "§4§l今起動できません");
+
+                        return true;
+
+                    }
 
                     if (plugin.setup){
                         p.sendMessage(plugin.prefex + "§4§lすでに始まっています!");
@@ -156,11 +260,6 @@ public class Command implements CommandExecutor {
                         plugin.bal = Double.parseDouble(args[1]);
                         if (plugin.config.getConfig().getInt("minbal") > plugin.bal) {
                             p.sendMessage(plugin.prefex + "§4§l最低金額は" + plugin.config.getConfig().getInt("minbal") + "円です");
-                            return false;
-                        }
-
-                        if (plugin.bal > 2000000000) {
-                            p.sendMessage(plugin.prefex + "§4§l最高金額は20億円です");
                             return false;
                         }
 
@@ -183,7 +282,7 @@ public class Command implements CommandExecutor {
 
                     plugin.uuid1 = p.getUniqueId();
 
-                    Bukkit.broadcastMessage(plugin.prefex + "§e§l" + p.getName() + "§f§rさんが§6§l" + plugin.jpnBalForm(plugin.bal) + "§f§l円の§a§l投票じゃんけん§f§rを開始しました:§l/vrps");
+                    Bukkit.broadcastMessage(plugin.prefex + "§e§l" + p.getName() + "§f§rさんが§6§l" + plugin.jpnBalForm(plugin.bal) + "§f§l円の§a§l投票じゃんけん§f§rを開始しました:§l/mv");
 
                     return true;
 

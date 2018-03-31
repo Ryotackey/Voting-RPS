@@ -1,9 +1,8 @@
 <component name="ArtifactManager">
   <artifact type="jar" name="Voting_RPS:jar">
-    <output-path>$PROJECT_DIR$</output-path>
+    <output-path>$PROJECT_DIR$/out/artifacts/Voting_RPS_jar</output-path>
     <root id="archive" name="Voting_RPS.jar">
       <element id="module-output" name="Voting_RPS" />
-      <element id="extracted-dir" path="$USER_HOME$/Desktop/Vault.jar" path-in-jar="/" />
     </root>
   </artifact>
 </component>

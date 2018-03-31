@@ -2,7 +2,7 @@ name: Voting_RPS
 version: ${project.version}
 main: red.man10.voting_rps.Voting_RPS
 commands:
-  vrps:
+  mv:
     description: Command no setsumei
     usage: /<command>
     default: true
